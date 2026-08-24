@@ -1,8 +1,9 @@
 name: Document Intelligence Model Pipeline
 
-# Branch-prefix-per-environment GitOps flow. Any branch whose name STARTS
-# WITH "dev/", "test/", or "prod/" maps to that environment - e.g. dev/main,
-# dev/feature-x, test/main, prod/main all work; only the prefix matters.
+# Branch-prefix-per-environment GitOps flow, with `main` as Prod. Any
+# branch whose name STARTS WITH "dev/" or "test/" maps to that environment
+# (e.g. dev/main, dev/feature-x, test/main - only the prefix matters).
+# Prod is simply the repo's default branch: `main`.
 #
 #   dev/*   -> training is always a deliberate, manual action (see
 #              workflow_dispatch below) - run train.py + evaluate.py
@@ -10,14 +11,14 @@ name: Document Intelligence Model Pipeline
 #   test/*  -> after a PR into a test/* branch is merged, promote_pending_models.py
 #              copies every model that's newer in the source dev/* branch's
 #              state files than in this branch's, then evaluate.py against Test
-#   prod/*  -> after a PR into a prod/* branch is merged, same promotion
-#              from the source test/* branch's state files into prod, then
+#   main    -> after a PR into main is merged, same promotion from the
+#              source test/* branch's state files into main, then
 #              evaluate.py against Prod
 #
-# Nothing is trained on test/*/prod/* branches - they only ever promote
+# Nothing is trained on test/*/main - they only ever promote
 # (copy_model.py) a model that was already trained and evaluated on a
 # dev/* branch. A PR merge is the human decision point: opening/approving/
-# merging "dev/main -> test/main" or "test/main -> prod/main" IS the
+# merging "dev/main -> test/main" or "test/main -> main" IS the
 # promotion approval, informed by the evaluation report(s) attached to the
 # previous run.
 #
@@ -47,12 +48,12 @@ name: Document Intelligence Model Pipeline
 #   AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_SUBSCRIPTION_ID   # federated SPN for OIDC login
 #
 # The "test" and "prod" GitHub Environments below can define required
-# reviewers/branch protections, so a merge into a test/* or prod/* branch
+# reviewers/branch protections, so a merge into a test/* branch or `main`
 # still waits for a human approval before it actually promotes anything.
 
 on:
   pull_request:
-    branches: ["test/**", "prod/**"]
+    branches: ["test/**", "main"]
     types: [closed]
   workflow_dispatch:
     inputs:
@@ -179,11 +180,11 @@ jobs:
             config/models/
             reports/
 
-  # --- prod/* branches: promote whatever's newer in the source test/* branch
+  # --- main: promote whatever's newer in the source test/* branch
   promote-to-prod:
     if: >
       github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
-      startsWith(github.base_ref, 'prod/') && startsWith(github.head_ref, 'test/')
+      github.base_ref == 'main' && startsWith(github.head_ref, 'test/')
     needs: schema-check
     runs-on: ubuntu-latest
     environment: prod # configure required reviewers on this GitHub Environment for manual approval

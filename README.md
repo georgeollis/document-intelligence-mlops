@@ -8,14 +8,14 @@ held-out validation documents — the model's extracted field values and
 confidence scores are recorded for a human to review — and promoting to
 the next environment is always a deliberate decision, driven by merging a
 pull request from a `dev/*` branch into a `test/*` branch, or `test/*` into
-`prod/*`.
+`main`.
 
 ![Architecture diagram](images/archiecture.png)
 
 ```
- dev/* branch                     test/* branch                   prod/* branch
+ dev/* branch                     test/* branch                   main branch
  ┌───────────────────────┐        ┌───────────────────────┐       ┌───────────────────────┐
- │ 1. Label docs (Studio)│        │ 3. PR dev/* -> test/*, │       │ 5. PR test/* -> prod/*,│
+ │ 1. Label docs (Studio)│        │ 3. PR dev/* -> test/*, │       │ 5. PR test/* -> main,  │
  │ 2. Run workflow:       │──────▶│    merge                │──────▶│    merge                │
  │    train.py            │  PR   │    -> promote_pending_  │  PR   │    -> promote_pending_  │
  │    + evaluate.py       │       │       models.py         │       │       models.py         │
@@ -33,12 +33,13 @@ prod). Each is its own Document Intelligence resource, identified by a
 `<NAME>_DI_ENDPOINT` secret. Repeat the table below for `dev`, `test`, and
 `prod` (only Dev also needs storage/Studio/managed identity steps):
 
-> Branch names and environment names are independent: the workflow matches
-> branches by **prefix**, not exact name — any branch starting with
-> `dev/`, `test/`, or `prod/` (e.g. `dev/main`, `dev/feature-x`, `test/main`)
-> maps to that environment. Only the prefix matters, so teams can use their
-> own branch-naming convention after it. Change the prefixes themselves in
-> `.github/workflows/model-pipeline.yml` if `dev`/`test`/`prod` don't fit.
+> Branch names and environment names are independent: `dev/*` and `test/*`
+> branches are matched by **prefix** (e.g. `dev/main`, `dev/feature-x`,
+> `test/main`) — only the prefix matters, so teams can use their own
+> branch-naming convention after it. **Prod maps to the repo's `main`
+> branch** — there's no `prod/*` prefix, `main` simply *is* Prod. Change
+> the `dev`/`test` prefixes themselves in
+> `.github/workflows/model-pipeline.yml` if they don't fit.
 
 | Step | Dev | Test | Prod |
 |---|---|---|---|
@@ -133,22 +134,23 @@ accumulate; full detail always lives in `reports/<doc-type>/`.
 
 ## 3. Branch-per-environment CI/CD
 
-This sample maps git **branch prefixes** onto environments: any branch
-starting with `dev/` → Dev, `test/` → Test, `prod/` → Prod (e.g. `dev/main`,
-`test/main`, `prod/main`, or `dev/feature-x` — only the prefix is matched).
-Nothing is ever trained on a `test/*` or `prod/*` branch — those only ever
-*promote* a model that was already trained and evaluated on a `dev/*`
-branch. A model is never "in" a branch (it lives in Document Intelligence),
-so what actually moves between branches is the **state file** that
-records which model id/version is live where.
+This sample maps git **branch prefixes** onto Dev and Test, and the repo's
+**`main` branch onto Prod**: any branch starting with `dev/` → Dev, `test/`
+→ Test (e.g. `dev/main`, `test/main`, or `dev/feature-x` — only the prefix
+is matched), while `main` itself is always Prod. Nothing is ever trained on
+a `test/*` branch or on `main` — those only ever *promote* a model that was
+already trained and evaluated on a `dev/*` branch. A model is never "in" a
+branch (it lives in Document Intelligence), so what actually moves between
+branches is the **state file** that records which model id/version is live
+where.
 
 ```
-dev/* branch                   test/* branch                  prod/* branch
-────────────                   ─────────────                  ─────────────
-Run workflow: train.py         PR dev/* -> test/*, merge       PR test/* -> prod/*, merge
+dev/* branch                   test/* branch                  main branch
+────────────                   ─────────────                  ───────────
+Run workflow: train.py         PR dev/* -> test/*, merge       PR test/* -> main, merge
   + evaluate.py (manual)        -> promote_pending_models.py    -> promote_pending_models.py
      (commits state file to       (copy_model.py + evaluate.py,   (copy_model.py + evaluate.py,
-      this dev/* branch)          commits state file to test/*)   commits state file to prod/*)
+      this dev/* branch)          commits state file to test/*)   commits state file to main)
 ```
 
 **Triggering training** — there is no auto-trigger and no trigger file to
@@ -160,7 +162,7 @@ Run workflow**, choosing the `dev/*` branch to commit to and providing
 always a deliberate action — it's never a side effect of a Git push.
 
 **Promoting** — open a pull request from a `dev/*` branch into a `test/*`
-branch (or from `test/*` into `prod/*`) whenever you're ready to promote
+branch (or from `test/*` into `main`) whenever you're ready to promote
 what's currently on that branch. Reviewing that PR (its diff is just the
 state file(s) under `config/models/`, plus any code changes) *is* the
 promotion decision — informed by the evaluation reports uploaded as
@@ -174,7 +176,7 @@ artifacts from the previous run. Once merged:
   `copy_model.py` + `evaluate.py` and commits the result back to the
   `test/*` branch.
 - `promote-to-prod` does the same thing comparing a `test/*` branch's
-  state files to a `prod/*` branch's.
+  state files to `main`'s.
 - A doc type that hasn't changed is skipped — "already at `<model-id>`,
   skipping." Nothing is re-copied or re-evaluated unnecessarily.
 
@@ -234,7 +236,7 @@ python src/train.py --doc-type invoice --version-bump major  # 0.1.1 -> 1.0.0
   the semantic version and appends to `history` instead of replacing the
   previous entry, so you can always see (and roll back to) any past model.
 - **Branches drive promotion, the state file is the diff**: a model can't
-  literally live "in" a branch, so each `dev/*`/`test/*`/`prod/*` branch
+  literally live "in" a branch, so each `dev/*`/`test/*` branch and `main`
   carries its own copy of `config/models/`, and merging a PR
   between them is what triggers `promote_pending_models.py` to compare the
   two and copy whatever's newer — using ordinary code-review tooling (PRs,
@@ -259,7 +261,7 @@ follow the same flow — build the child models and the composed model in
 Dev, then copy/evaluate the composed model id through Test and Prod like
 any other model id.
 
-## Extending beyond dev/test/prod
+## Extending beyond dev/test/main
 
 Every script takes an environment name as a plain string (`--env`,
 `--source`, `--target`), resolved from a `<NAME>_DI_ENDPOINT` env var —
@@ -268,7 +270,7 @@ and prod): create the resource, set its endpoint secret, grant the pipeline
 identity access to it, use `staging/*` as that stage's branch prefix, and
 add one more `promote_pending_models.py` + `evaluate.py` job to the
 pipeline (copy the `promote-to-test`/`promote-to-prod` job and adjust
-`--upstream-env`/`--this-env` and the `startsWith(...)` prefixes).
+`--upstream-env`/`--this-env` and the branch checks).
 
 ## Repo layout
 
@@ -284,7 +286,7 @@ src/
 tests/
   test_schema.py               # validates each config/models/*.json file, and that no dataset folder was committed
   test_evaluation_reports.py   # prints a confidence summary of evaluate.py's reports (informational only)
-.github/workflows/model-pipeline.yml   # dev push -> train, test/main PR merge -> promote, with approval gates
+.github/workflows/model-pipeline.yml   # manual dispatch -> train, test/*|main PR merge -> promote, with approval gates
 ```
 
 There is no local `datasets/` folder in this sample — training and
