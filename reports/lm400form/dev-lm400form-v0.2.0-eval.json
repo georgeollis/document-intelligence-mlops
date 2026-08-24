@@ -1,0 +1,72 @@
+{
+  "docType": "lm400form",
+  "environment": "dev",
+  "modelId": "lm400form-v0.2.0",
+  "modelVersion": "0.2.0",
+  "averageConfidence": 0.9632857142857142,
+  "documents": [
+    {
+      "file": "INV1014.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1014",
+          "confidence": 0.963
+        }
+      }
+    },
+    {
+      "file": "INV1015.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1015",
+          "confidence": 0.963
+        }
+      }
+    },
+    {
+      "file": "INV1016.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1016",
+          "confidence": 0.962
+        }
+      }
+    },
+    {
+      "file": "INV1017.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1017",
+          "confidence": 0.964
+        }
+      }
+    },
+    {
+      "file": "INV1018.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1018",
+          "confidence": 0.964
+        }
+      }
+    },
+    {
+      "file": "INV1019.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1019",
+          "confidence": 0.963
+        }
+      }
+    },
+    {
+      "file": "INV1020.pdf",
+      "fields": {
+        "Invoice": {
+          "value": "INV1020",
+          "confidence": 0.964
+        }
+      }
+    }
+  ]
+}

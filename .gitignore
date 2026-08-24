@@ -5,5 +5,4 @@ datasets/
 
 .venv/
 __pycache__/
-reports/
 .pytest_cache/
