@@ -1,0 +1,49 @@
+{
+  "docType": "lm400form",
+  "modelKind": "neural",
+  "version": "0.2.0",
+  "childModelIds": [],
+  "environments": {
+    "dev": {
+      "modelId": "lm400form-v0.2.0",
+      "modelVersion": "0.2.0",
+      "resourceEndpoint": "https://document-intelligence-resource-swe.cognitiveservices.azure.com/",
+      "trainedAt": "2026-08-24 16:14:33+00:00"
+    }
+  },
+  "history": [
+    {
+      "version": "0.1.0",
+      "modelId": "lm400form-v0.1.0",
+      "modelKind": "neural",
+      "trainedAt": "2026-08-24 16:00:35+00:00"
+    },
+    {
+      "version": "0.2.0",
+      "modelId": "lm400form-v0.2.0",
+      "modelKind": "neural",
+      "trainedAt": "2026-08-24 16:14:33+00:00"
+    }
+  ],
+  "evaluations": {
+    "dev": [
+      {
+        "modelId": "lm400form-v0.2.0",
+        "modelVersion": "0.2.0",
+        "documentCount": 7,
+        "averageConfidence": 0.9632857142857142,
+        "reportPath": "lm400form\\dev-lm400form-v0.2.0-eval.json"
+      },
+      {
+        "modelId": "lm400form-v0.2.0",
+        "modelVersion": "0.2.0",
+        "documentCount": 7,
+        "averageConfidence": 0.9632857142857142,
+        "reportPath": "lm400form\\dev-lm400form-v0.2.0-eval.json"
+      }
+    ]
+  },
+  "thresholds": {
+    "minFieldConfidence": 0.8
+  }
+}

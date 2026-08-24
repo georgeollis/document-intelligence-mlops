@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime, timezone
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 
@@ -111,7 +112,10 @@ def main() -> int:
         "averageConfidence": average_confidence,
         "documents": document_results,
     }
-    report_path = ensure_reports_dir(args.doc_type) / f"{args.env}-{args.model_id}-eval.json"
+    report_path = ensure_reports_dir(args.doc_type) / (
+        f"{args.env}-{args.model_id}-eval-"
+        f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+    )
     report_path.write_text(json.dumps(report, indent=2))
 
     record_evaluation_run(

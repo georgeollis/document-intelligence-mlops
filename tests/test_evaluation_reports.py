@@ -27,7 +27,7 @@ def test_summarize_available_reports():
         print("No reports/ directory yet - run evaluate.py first. Skipping.")
         return
 
-    for report_path in sorted(REPORTS_DIR.glob("*/*-eval.json")):
+    for report_path in sorted(REPORTS_DIR.glob("*/*-eval-*.json")):
         report = json.loads(report_path.read_text())
         reference = _reference_confidence_for(report["docType"])
         confidence = report["averageConfidence"]
