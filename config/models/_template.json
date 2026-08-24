@@ -1,0 +1,33 @@
+{
+  "docType": "_template",
+  "modelKind": "neural",
+  "version": "0.0.0",
+  "childModelIds": [],
+  "history": [],
+  "environments": {
+    "dev": {
+      "modelId": null,
+      "modelVersion": null,
+      "resourceEndpoint": null,
+      "trainedAt": null
+    },
+    "test": {
+      "modelId": null,
+      "modelVersion": null,
+      "resourceEndpoint": null,
+      "copiedFrom": "dev",
+      "copiedAt": null
+    },
+    "prod": {
+      "modelId": null,
+      "modelVersion": null,
+      "resourceEndpoint": null,
+      "copiedFrom": "test",
+      "copiedAt": null
+    }
+  },
+  "evaluations": {},
+  "thresholds": {
+    "minFieldConfidence": 0.8
+  }
+}

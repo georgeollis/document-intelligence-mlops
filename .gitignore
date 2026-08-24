@@ -1,0 +1,9 @@
+# Training and validation documents belong only in Dev Blob Storage, under
+# the training/ and validation/ prefixes of each doc type's container - not
+# in this repository. There is no local datasets/ folder in this sample.
+datasets/
+
+.venv/
+__pycache__/
+reports/
+.pytest_cache/
